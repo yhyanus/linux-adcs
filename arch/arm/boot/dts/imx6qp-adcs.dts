@@ -6,62 +6,16 @@
  * published by the Free Software Foundation.
  */
 
-/dts-v1/;
+#include "imx6q-adcs.dts"
 
-#include "imx6q.dtsi"
-#include "imx6q-adcs.dtsi"
-
-/ {
-	model = "ADCS i.MX6 Quad Device Board";
-	compatible = "fsl,imx6q-sabresd", "fsl,imx6q";
-};
-
-&battery {
-	offset-charger = <1900>;
-	offset-discharger = <1694>;
-	offset-usb-charger = <1685>;
-};
-
-&ldb {
-	lvds-channel@0 {
-		crtc = "ipu2-di0";
-	};
-
-	lvds-channel@1 {
-		crtc = "ipu2-di1";
-	};
-};
-
-&mxcfb1 {
-	status = "okay";
-};
-
-&mxcfb2 {
-	status = "okay";
-};
-
-&mxcfb3 {
-	status = "okay";
-};
-
-&mxcfb4 {
-	status = "okay";
-};
-
-&sata {
-	status = "okay";
-};
-
- 
 #include "imx6qp.dtsi"
 
-
-
-&cpu0 {
-	arm-supply = <&sw2_reg>;
+/ {
+	model = "ADCS i.MX6Quad Board";
 };
 
  
+
 
 &mxcfb1 {
 	prefetch;
