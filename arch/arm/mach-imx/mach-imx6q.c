@@ -55,6 +55,8 @@ static int ksz9021rn_phy_fixup(struct phy_device *phydev)
 		phy_write(phydev, MICREL_KSZ9021_EXTREG_DATA_WRITE, 0xf0f0);
 		phy_write(phydev, MICREL_KSZ9021_EXTREG_CTRL,
 			MICREL_KSZ9021_RGMII_CLK_CTRL_PAD_SCEW);
+pr_err("ksz9021rn_phy_fixup\n");
+
 	}
 
 	return 0;
@@ -77,7 +79,7 @@ static int ksz9031rn_phy_fixup(struct phy_device *dev)
 	mmd_write_reg(dev, 2, 4, 0);
 	mmd_write_reg(dev, 2, 5, 0);
 	mmd_write_reg(dev, 2, 8, 0x003ff);
-
+pr_err("ksz9031rn_phy_fixup\n");
 	return 0;
 }
 
@@ -140,7 +142,7 @@ static int ar8031_phy_fixup(struct phy_device *dev)
 	val = phy_read(dev, 0x1e);
 	val |= 0x0100;
 	phy_write(dev, 0x1e, val);
-
+pr_err("ar8031_phy_fixup\n");
 	return 0;
 }
 
@@ -173,12 +175,16 @@ static int ar8035_phy_fixup(struct phy_device *dev)
 	val = phy_read(dev, 0x0);
 	if (val & BMCR_PDOWN)
 		phy_write(dev, 0x0, val & ~BMCR_PDOWN);
-
+pr_err("ar8031_phy_fixup\n");
 	return 0;
 }
 
 #define PHY_ID_AR8035 0x004dd072
+#define PHY_ID_88E1111 	0x01410cc0
 
+static int mv88E1111_phy_fixup(struct phy_device *dev)
+{
+}
 static void __init imx6q_enet_phy_init(void)
 {
 	if (IS_BUILTIN(CONFIG_PHYLIB)) {
@@ -190,6 +196,10 @@ static void __init imx6q_enet_phy_init(void)
 				ar8031_phy_fixup);
 		phy_register_fixup_for_uid(PHY_ID_AR8035, 0xffffffef,
 				ar8035_phy_fixup);
+//	phy_register_fixup_for_uid(PHY_ID_88E1111, 0xfffffff0,
+//				mv88E1111_phy_fixup);
+		
+
 	}
 }
 
@@ -307,7 +317,7 @@ static inline void imx6q_enet_init(void)
 {
 	imx6_enet_mac_init("fsl,imx6q-fec", "fsl,imx6q-ocotp");
 	imx6q_enet_phy_init();
-	imx6q_1588_init();
+//	imx6q_1588_init();
 	if (cpu_is_imx6q() && imx_get_soc_revision() == IMX_CHIP_REVISION_2_0)
 		imx6q_enet_clk_sel();
 }
@@ -330,7 +340,9 @@ static void __init imx6q_init_machine(void)
 
 	imx6q_enet_init();
 	imx_anatop_init();
+#ifndef CONFIG_ADCS
 	imx6q_csi_mux_init();
+#endif
 	cpu_is_imx6q() ?  imx6q_pm_init() : imx6dl_pm_init();
 	imx6q_axi_init();
 }

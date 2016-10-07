@@ -946,11 +946,12 @@ void __init setup_arch(char **cmdline_p)
 
 	if (mdesc->restart)
 		arm_pm_restart = mdesc->restart;
-
+early_print("Before unflatten_device_tree\n");
 	unflatten_device_tree();
-
+early_print("after unflatten_device_tree\n");
 	arm_dt_init_cpu_maps();
 	psci_init();
+	early_print("psci_init\n");
 #ifdef CONFIG_SMP
 	if (is_smp()) {
 		if (!mdesc->smp_init || !mdesc->smp_init()) {
@@ -980,9 +981,10 @@ void __init setup_arch(char **cmdline_p)
 	conswitchp = &dummy_con;
 #endif
 #endif
-
+	early_print("init_early\n");
 	if (mdesc->init_early)
 		mdesc->init_early();
+	early_print("init_early ok\n");
 }
 
 

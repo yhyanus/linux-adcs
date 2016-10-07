@@ -468,7 +468,7 @@ static int m88e1111_config_init(struct phy_device *phydev)
 {
 	int err;
 	int temp;
-
+#if 0
 	if ((phydev->interface == PHY_INTERFACE_MODE_RGMII) ||
 	    (phydev->interface == PHY_INTERFACE_MODE_RGMII_ID) ||
 	    (phydev->interface == PHY_INTERFACE_MODE_RGMII_RXID) ||
@@ -563,6 +563,8 @@ static int m88e1111_config_init(struct phy_device *phydev)
 		return err;
 
 	return phy_write(phydev, MII_BMCR, BMCR_RESET);
+#endif
+	return 0;
 }
 
 static int m88e1118_config_aneg(struct phy_device *phydev)
@@ -743,7 +745,7 @@ static int marvell_read_status(struct phy_device *phydev)
 	int err;
 	int lpa;
 	int status = 0;
-
+ 
 	/* Update the link, but return if there
 	 * was an error */
 	err = genphy_update_link(phydev);

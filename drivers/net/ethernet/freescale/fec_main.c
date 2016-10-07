@@ -577,7 +577,6 @@ static int fec_enet_txq_submit_skb(struct fec_enet_priv_tx_q *txq,
 
 	/* Trigger transmission start */
 	writel(0, fep->hwp + FEC_X_DES_ACTIVE(queue));
-
 	return 0;
 }
 
@@ -638,7 +637,6 @@ fec_enet_txq_put_data_tso(struct fec_enet_priv_tx_q *txq, struct sk_buff *skb,
 	}
 
 	bdp->cbd_sc = status;
-
 	return 0;
 }
 
@@ -807,8 +805,10 @@ fec_enet_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 
 	entries_free = fec_enet_get_free_txdesc_num(fep, txq);
 	if (entries_free <= txq->tx_stop_threshold)
+	{
 		netif_tx_stop_queue(nq);
-
+		netdev_err(ndev, "netif_tx_stop_queue!\n");  
+	} 
 	return NETDEV_TX_OK;
 }
 
@@ -1642,7 +1642,6 @@ fec_enet_interrupt(int irq, void *dev_id)
 
 	if ((fep->work_tx || fep->work_rx) && fep->link) {
 		ret = IRQ_HANDLED;
-
 		if (napi_schedule_prep(&fep->napi)) {
 			/* Disable the NAPI interrupts */
 			writel(FEC_ENET_MII, fep->hwp + FEC_IMASK);
@@ -1653,6 +1652,8 @@ fec_enet_interrupt(int irq, void *dev_id)
 	if (int_events & FEC_ENET_MII) {
 		ret = IRQ_HANDLED;
 		complete(&fep->mdio_done);
+		// netdev_err(ndev, "fec_enet_interrupt! FEC_ENET_MII\n"); 
+
 	}
 
 	if (fep->ptp_clock)
@@ -3329,6 +3330,7 @@ static int fec_enet_init(struct net_device *ndev)
 #ifdef CONFIG_OF
 static void fec_reset_phy(struct platform_device *pdev)
 {
+#if 0
 	int err, phy_reset;
 	int msec = 1;
 	struct device_node *np = pdev->dev.of_node;
@@ -3353,6 +3355,8 @@ static void fec_reset_phy(struct platform_device *pdev)
 	}
 	msleep(msec);
 	gpio_set_value(phy_reset, 1);
+	dev_err(&pdev->dev, "fec_reset_phy\n");
+#endif
 }
 #else /* CONFIG_OF */
 static void fec_reset_phy(struct platform_device *pdev)
