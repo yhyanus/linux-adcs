@@ -310,6 +310,7 @@ int spi_add_device(struct spi_device *spi)
 	 * its configuration.  Lock against concurrent add() calls.
 	 */
 	mutex_lock(&spi_add_lock);
+	dev_err(dev, "spi:%s  chip_select %d (%d) master:%d\n", dev_name(&spi->dev),	spi->chip_select , master->num_chipselect ,spi->master->bus_num);
 
 	status = bus_for_each_dev(&spi_bus_type, NULL, spi, spi_dev_check);
 	if (status) {
@@ -1173,7 +1174,6 @@ of_register_spi_device(struct spi_master *master, struct device_node *nc)
 		rc = -ENOMEM;
 		goto err_out;
 	}
-
 	/* Select device driver */
 	rc = of_modalias_node(nc, spi->modalias,
 				sizeof(spi->modalias));

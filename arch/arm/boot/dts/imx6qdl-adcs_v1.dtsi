@@ -47,12 +47,11 @@
 		compatible = "linux,wdt-tpl5010";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_watchdog>;
-		gpios = <&gpio4 11 GPIO_ACTIVE_LOW>;   /*WDDONE */
+		gpios = <&gpio4 11 GPIO_ACTIVE_LOW>;
 		hw_algo = "toggle";
-		gpio_reset = <&gpio7 12 GPIO_ACTIVE_LOW>;  /*GPIO_WD_RSTn */
-		gpio_timer = <&gpio4 10 GPIO_ACTIVE_LOW>; /* WDWAKE */
+		gpio_reset = <&gpio4 10 GPIO_ACTIVE_LOW>;
+		gpio_timer = <&gpio1 19 GPIO_ACTIVE_LOW>;
 		hw_margin_ms = <1600>;
-		status = "okay";
 	};
 	chosen {
 		stdout-path = &uart1;
@@ -209,12 +208,33 @@
 		};
 		
 	};
+ /*
+	sound {
+		compatible = "fsl,imx6q-sabresd-wm8962",
+			   "fsl,imx-audio-wm8962";
+		model = "wm8962-audio";
+		cpu-dai = <&ssi2>;
+		audio-codec = <&codec>;
+		asrc-controller = <&asrc>;
+		audio-routing =
+			"Headphone Jack", "HPOUTL",
+			"Headphone Jack", "HPOUTR",
+			"Ext Spk", "SPKOUTL",
+			"Ext Spk", "SPKOUTR",
+			"AMIC", "MICBIAS",
+			"IN3R", "AMIC",
+			"DMIC", "MICBIAS",
+			"DMICDAT", "DMIC",
+			"CPU-Playback", "ASRC-Playback",
+			"Playback", "CPU-Playback",
+			"ASRC-Capture", "CPU-Capture",
+			"CPU-Capture", "Capture";
+		mux-int-port = <2>;
+		mux-ext-port = <3>;
+		 
+	};
+*/
 
-	
-	
-
-
- 
 	clocks {
 		codec_osc: anaclk2 {
 			compatible = "fixed-clock";
@@ -222,8 +242,6 @@
 			clock-frequency = <24576000>;
 		};
 	};
-	
-	/*
 	sound-cs42888 {
 		compatible = "fsl,imx6-sabresd-cs42888",
 				"fsl,imx-audio-cs42888";
@@ -233,18 +251,6 @@
 		audio-codec = <&codec>;
 		mux-int-port = <3>;
 		mux-ext-port = <2>;
-		test-ctl-gpios = <&gpio2 11 1>;
-		test-ch-gpio1 = <&gpio2 12 1>;
-		test-ch-gpio2 = <&gpio2 13 1>;
-		reset-gpio  = <&gpio5 21 0>;
-	};*/
-	sound-cs42888 {
-		compatible = "fsl,imx6-sabreauto-cs42888",
-				"fsl,imx-audio-cs42888";
-		model = "imx-cs42888";
-		esai-controller = <&esai>;
-		asrc-controller = <&asrc>;
-		audio-codec = <&codec>;
 		test-ctl-gpios = <&gpio2 11 1>;
 		test-ch-gpio1 = <&gpio2 12 1>;
 		test-ch-gpio2 = <&gpio2 13 1>;
@@ -354,13 +360,13 @@
 		#reset-cells = <0>;
 	};
 };
-/*
+
 &audmux {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_audmux>;
 	status = "okay";
 };
-*/
+
  
 
 &clks {
@@ -462,6 +468,29 @@
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = "okay";
  /*
+codec: wm8962@17 {
+		compatible = "wlf,wm8962";
+		reg = <0x17>;
+		clocks = <&clks IMX6QDL_CLK_CKO>;
+		DCVDD-supply = <&reg_audio>;
+		DBVDD-supply = <&reg_audio>;
+		AVDD-supply = <&reg_audio>;
+		CPVDD-supply = <&reg_audio>;
+		MICVDD-supply = <&reg_audio>;
+		PLLVDD-supply = <&reg_audio>;
+		SPKVDD1-supply = <&reg_audio>;
+		SPKVDD2-supply = <&reg_audio>;
+		gpio-cfg = <
+			0x0000  
+			0x0000  
+			0x0013  
+			0x0000  
+			0x8014  
+			0x0000  
+		>;
+		amic-mono;
+       };
+*/
 	codec: cs42888@17 {
 		compatible = "cirrus,cs42888";
 		reg = <0x17>;
@@ -471,19 +500,21 @@
 		VD-supply = <&reg_audio>;
 		VLS-supply = <&reg_audio>;
 		VLC-supply = <&reg_audio>;
-        };*/
-   	
-   	codec: cs42888@48 {
-		compatible = "cirrus,cs42888";
-		reg = <0x48>;
-		clocks = <&clks IMX6QDL_CLK_CKO>;  /*clocks = <&codec_osc>;*/
-		clock-names = "mclk";
-		VA-supply = <&reg_audio>;
-		VD-supply = <&reg_audio>;
-		VLS-supply = <&reg_audio>;
-		VLC-supply = <&reg_audio>;
-        };     
+        };
 
+   /*     
+	mma8451@1c {
+		compatible = "fsl,mma8451";
+		reg = <0x1c>;
+		position = <0>;
+		vdd-supply = <&reg_sensor>;
+		vddio-supply = <&reg_sensor>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <18 8>;
+		interrupt-route = <1>;
+	};*/
+
+	
 };
 
 &i2c2 {
@@ -549,13 +580,13 @@
 		pinctrl_watchdog: pinctrl_wdoggrp {
 			fsl,pins = <
 				/* for wdog tpl5010  and wdog_B1 pin	*/
-				 MX6QDL_PAD_KEY_ROW2__GPIO4_IO11		0x1b0b0    /* GPIO_WDDONE out */
-				 MX6QDL_PAD_KEY_COL2__GPIO4_IO10		0x1b0b0    /* GPIO_WDWAKE in  */
-				 /*MX6QDL_PAD_SD1_DAT2__GPIO1_IO19		0x1b0b0 */
-				 MX6QDL_PAD_GPIO_17__GPIO7_IO12			0x1b0b0 /*MX6QDL_PAD_GPIO_16__GPIO7_IO11			0x1b0b0  GPIO_WD_RSTn in*/
+				 MX6QDL_PAD_KEY_ROW2__GPIO4_IO11		0x1b0b0 
+				 MX6QDL_PAD_KEY_COL2__GPIO4_IO10		0x1b0b0 
+				 MX6QDL_PAD_SD1_DAT2__GPIO1_IO19		0x1b0b0 
+				 MX6QDL_PAD_GPIO_16__GPIO7_IO11			0x1b0b0 
 			>;
 		};
-/*		pinctrl_audmux: audmuxgrp {
+		pinctrl_audmux: audmuxgrp {
 			fsl,pins = <
 				MX6QDL_PAD_CSI0_DAT7__AUD3_RXD		0x130B0 
 				MX6QDL_PAD_CSI0_DAT4__AUD3_TXC		0x130B0 
@@ -565,11 +596,9 @@
 				MX6QDL_PAD_SD4_DAT3__GPIO2_IO11   0x1b0b0
 				MX6QDL_PAD_SD4_DAT4__GPIO2_IO12		0x1b0b0
 				MX6QDL_PAD_SD4_DAT5__GPIO2_IO13		0x1b0b0
-				MX6QDL_PAD_CSI0_VSYNC__GPIO5_IO21		0x1b0b0
-				 
 			>;
 		};
-*/
+
 		pinctrl_ecspi1: ecspi1grp {
 			fsl,pins = <
 				MX6QDL_PAD_KEY_COL1__ECSPI1_MISO	0x100b1
@@ -645,11 +674,10 @@
 			fsl,pins = <
 			
 				MX6QDL_PAD_GPIO_4__GPIO1_IO04  0x1b0b0
-				
+				MX6QDL_PAD_GPIO_5__GPIO1_IO05  0x1b0b0
 				MX6QDL_PAD_GPIO_18__GPIO7_IO13  0x1b0b0
 				MX6QDL_PAD_GPIO_19__GPIO4_IO05  0x1b0b0
-				MX6QDL_PAD_CSI0_DAT5__GPIO5_IO23  0x1b0b0 /*????? IO_WOW _SW MX6QDL_PAD_GPIO_5__GPIO1_IO05  0x1b0b0*/
-				MX6QDL_PAD_CSI0_DAT4__GPIO5_IO22  0x1b0b0 /*????? IO_ATE_SW 	MX6QDL_PAD_GPIO_2__GPIO1_IO02  0x1b0b0*/
+				MX6QDL_PAD_GPIO_2__GPIO1_IO02  0x1b0b0
 				MX6QDL_PAD_SD1_DAT1__GPIO1_IO17  0x1b0b0
 			>;
 		};
@@ -709,26 +737,6 @@
 			>;
 		};
 */
-		pinctrl_esai: esaigrp {
-				fsl,pins = <					
-					MX6QDL_PAD_GPIO_5__ESAI_TX2_RX3       0x1b030 
-					MX6QDL_PAD_GPIO_6__ESAI_TX_CLK  			0x1b030
-					MX6QDL_PAD_GPIO_7__ESAI_TX4_RX1 			0x1b030
-					MX6QDL_PAD_GPIO_8__ESAI_TX5_RX0 			0x1b030
-					MX6QDL_PAD_NANDF_CS2__ESAI_TX0  			0x1b030
-					MX6QDL_PAD_NANDF_CS3__ESAI_TX1  			0x1b030
-					MX6QDL_PAD_GPIO_1__ESAI_RX_CLK  			0x1b030
-					MX6QDL_PAD_GPIO_2__ESAI_TX_FS 				0x1b030
-					MX6QDL_PAD_GPIO_9__ESAI_RX_FS   			0x1b030
-					MX6QDL_PAD_GPIO_16__ESAI_TX3_RX2   		0x1b030		
-					
-				/* for control gpio */	
-				MX6QDL_PAD_SD4_DAT3__GPIO2_IO11   0x1b0b0
-				MX6QDL_PAD_SD4_DAT4__GPIO2_IO12		0x1b0b0
-				MX6QDL_PAD_SD4_DAT5__GPIO2_IO13		0x1b0b0
-				MX6QDL_PAD_CSI0_VSYNC__GPIO5_IO21		0x1b0b0		
-				>;
-		};
 		pinctrl_ipu1: ipu1grp {
 			fsl,pins = <
 				MX6QDL_PAD_DI0_DISP_CLK__IPU1_DI0_DISP_CLK 0x10
@@ -969,12 +977,10 @@
 	status = "okay";
 };
 
-
-/*
 &ssi2 {
 	fsl,mode = "i2s-master";  
 	status = "okay";
-};*/
+};
  
 &uart1 {
 	pinctrl-names = "default";
@@ -1011,15 +1017,15 @@
 	tx-d-cal = <0x5>;
 };
 
-&wdog2 {
+&wdog1 {
 	status = "disabled";
 };
 
-&wdog1 {
+&wdog2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_wdog>;
 	fsl,wdog_b;
-	status = "okay";
+	status = "disabled";
 };
 
 /*  marked on 2017/03/23
@@ -1032,15 +1038,7 @@
 	status = "disabled";
 };
 */
-&esai {
-		pinctrl-names = "default";	
-		pinctrl-0 = <&pinctrl_esai>; 
-		assigned-clocks = <&clks IMX6QDL_CLK_ESAI_SEL>,
-				  <&clks IMX6QDL_CLK_ESAI_EXTAL>;
-		assigned-clock-parents = <&clks IMX6QDL_CLK_PLL4_AUDIO_DIV>;
-		assigned-clock-rates = <0>, <24576000>;
-		status = "okay";
-  };	
+
 &weim {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_weim_nor &pinctrl_weim_cs0>;

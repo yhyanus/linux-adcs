@@ -611,8 +611,11 @@ static int imx_ahci_probe(struct platform_device *pdev)
 
 	hpriv = ahci_platform_get_resources(pdev);
 	if (IS_ERR(hpriv))
+	{
+		dev_err(dev,
+				"failed to ahci_platform_get_resources\n");
 		return PTR_ERR(hpriv);
-
+	}
 	hpriv->plat_data = imxpriv;
 
 	ret = clk_prepare_enable(imxpriv->sata_clk);

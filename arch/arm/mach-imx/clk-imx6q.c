@@ -146,6 +146,10 @@ static unsigned int share_count_prg1;
 #define CCM_CBCMR		0x18
 #define CCM_CS2CDR		0x2c
 
+#define CCM_CS1CDR		0x28 
+#define CCM_CSCMR1		0x1C 
+#define CCM_CSCMR2		0x20
+#define CCM_CSOSR		0x60
 #define CCDR_MMDC_CH1_MASK	BIT(16)
 #define CCSR_PLL3_SW_CLK_SEL	BIT(0)
 #define CBCMR_PRE_PERIPH_CLK_SEL_MASK	0xC0000
@@ -341,13 +345,60 @@ static void disable_anatop_clocks(void)
 	reg &= ~(1 << 13);
 	writel_relaxed(reg, anatop_base + 0xa0);
 }
+//#define CONFIG_ADCS
 
+#ifdef CONFIG_ADCS
+static void init_anatop_clocks(void)
+{
+	u32 reg; 
+ 	reg = readl_relaxed(anatop_base + 0x70);
+	reg &= ~0xFFFf;
+	reg |= 0x201e ;
+	writel_relaxed(reg, anatop_base + 0x70);
+
+
+	reg = readl_relaxed(anatop_base + 0x80);
+	reg = 672 ;
+	writel_relaxed(reg, anatop_base + 0x80);
+	reg = 1000 ;
+	writel_relaxed(reg, anatop_base + 0x90);
+	reg = readl_relaxed(anatop_base + 0x90);
+ 
+	while(reg!=1000)
+	{
+		reg = 1000;
+		writel_relaxed(reg, anatop_base + 0x90);
+		reg = readl_relaxed(anatop_base + 0x90);
+	}
+ 
+	reg = readl_relaxed(ccm_base + CCM_CS1CDR);
+	reg &= ~(0x1FF<<16);	
+	writel_relaxed(reg, ccm_base + CCM_CS1CDR);
+
+	reg = readl_relaxed(ccm_base + CCM_CS2CDR);
+	reg &= ~0x1FF;
+	//reg |= 0x105;
+	writel_relaxed(reg, ccm_base + CCM_CS2CDR);
+
+	reg = readl_relaxed(ccm_base + CCM_CSCMR1);
+	reg &= ~0xF000;
+	reg |=  0xA000;
+	writel_relaxed(reg, ccm_base + CCM_CSCMR1);
+
+	reg = readl_relaxed(ccm_base + CCM_CSOSR);
+	
+	reg = 0x1b300df;
+	writel_relaxed(reg, ccm_base + CCM_CSOSR);
+
+ }
+void __init early_print(const char *str, ...);
+#endif
 static void __init imx6q_clocks_init(struct device_node *ccm_node)
 {
 	struct device_node *np;
 	void __iomem *base;
-	int i;
-
+	int i,irq;
+ 
 	clk[IMX6QDL_CLK_DUMMY] = imx_clk_fixed("dummy", 0);
 	clk[IMX6QDL_CLK_CKIL] = imx_obtain_fixed_clock("ckil", 0);
 	clk[IMX6QDL_CLK_CKIH] = imx_obtain_fixed_clock("ckih1", 0);
@@ -368,6 +419,9 @@ static void __init imx6q_clocks_init(struct device_node *ccm_node)
 		video_div_table[1].div = 1;
 		video_div_table[3].div = 1;
 	}
+#ifdef CONFIG_ADCS
+	//init_anatop_clocks();
+#endif
 
 	clk[IMX6QDL_PLL1_BYPASS_SRC] = imx_clk_mux("pll1_bypass_src", base + 0x00, 14, 2, pll_bypass_src_sels, ARRAY_SIZE(pll_bypass_src_sels));
 	clk[IMX6QDL_PLL2_BYPASS_SRC] = imx_clk_mux("pll2_bypass_src", base + 0x30, 14, 2, pll_bypass_src_sels, ARRAY_SIZE(pll_bypass_src_sels));
@@ -685,6 +739,9 @@ static void __init imx6q_clocks_init(struct device_node *ccm_node)
 	clk[IMX6QDL_CLK_ESAI_MEM]     = imx_clk_gate2_shared("esai_mem", "ahb",             base + 0x6c, 16, &share_count_esai);
 	clk[IMX6QDL_CLK_GPT_IPG]      = imx_clk_gate2("gpt_ipg",       "ipg",               base + 0x6c, 20);
 	clk[IMX6QDL_CLK_GPT_IPG_PER]  = imx_clk_gate2("gpt_ipg_per",   "ipg_per",           base + 0x6c, 22);
+#ifdef CONFIG_MXC_USE_EPIT
+	clk[IMX6QDL_CLK_EPIT1] 				=	imx_clk_gate2("epit1", "ipg",  base + 0x6c, 12);
+#endif	
 	if (cpu_is_imx6dl())
 		/*
 		 * The multiplexer and divider of imx6q clock gpu3d_shader get
@@ -780,7 +837,9 @@ static void __init imx6q_clocks_init(struct device_node *ccm_node)
 	clk_data.clks = clk;
 	clk_data.clk_num = ARRAY_SIZE(clk);
 	of_clk_add_provider(np, of_clk_src_onecell_get, &clk_data);
-
+#ifdef CONFIG_MXC_USE_EPIT
+	clk_register_clkdev(clk[IMX6QDL_CLK_EPIT1], "ipg", "imx-epit.0");
+#endif
 	clk_register_clkdev(clk[IMX6QDL_CLK_GPT_IPG], "ipg", "imx-gpt.0");
 	clk_register_clkdev(clk[IMX6QDL_CLK_GPT_IPG_PER], "per", "imx-gpt.0");
 	clk_register_clkdev(clk[IMX6QDL_CLK_GPT_3M], "gpt_3m", "imx-gpt.0");
@@ -852,13 +911,29 @@ static void __init imx6q_clocks_init(struct device_node *ccm_node)
 			imx_clk_set_rate(clk[IMX6QDL_CLK_GPU2D_CORE], 480000000);
 		}
 	}
-
+#if 0
+	//imx_clk_set_rate(clk[IMX6QDL_CLK_PLL4_AUDIO],  688128000);  
+	//imx_clk_set_parent(clk[IMX6QDL_CLK_CKO1_SEL], clk[IMX6QDL_CLK_PLL4_POST_DIV]);
+ 	//imx_clk_set_rate(clk[IMX6QDL_CLK_CKO1], 24576000);
+#endif
+ 
 	/*
 	 * Let's initially set up CLKO with OSC24M, since this configuration
 	 * is widely used by imx6q board designs to clock audio codec.
+	 * Pll4 -> ssi2-> clko2-> clko
 	 */
-	imx_clk_set_parent(clk[IMX6QDL_CLK_CKO2_SEL], clk[IMX6QDL_CLK_OSC]);
-	imx_clk_set_parent(clk[IMX6QDL_CLK_CKO], clk[IMX6QDL_CLK_CKO2]);
+	//imx_clk_set_parent(clk[IMX6QDL_CLK_CKO2_SEL], clk[IMX6QDL_CLK_OSC]);
+ 
+   imx_clk_set_parent(clk[IMX6QDL_CLK_CKO], clk[IMX6QDL_CLK_CKO2]);
+#ifdef CONFIG_SND_SOC_FSL_ESAI
+   imx_clk_set_parent(clk[IMX6QDL_CLK_ESAI_SEL], clk[IMX6QDL_CLK_PLL4_AUDIO_DIV]);
+#endif
+   imx_clk_set_parent(clk[IMX6QDL_CLK_SSI2_SEL], clk[IMX6QDL_CLK_PLL4_AUDIO_DIV]);
+
+   imx_clk_set_parent(clk[IMX6QDL_CLK_CKO2_SEL], clk[IMX6QDL_CLK_SSI2]);
+   imx_clk_set_rate(clk[IMX6QDL_CLK_PLL4_AUDIO_DIV], 196608000);
+   imx_clk_set_rate(clk[IMX6QDL_CLK_SSI2], 196608000/8);
+	 
 
 	/* Audio-related clocks configuration */
 	imx_clk_set_parent(clk[IMX6QDL_CLK_SPDIF_SEL], clk[IMX6QDL_CLK_PLL3_PFD3_454M]);
@@ -897,7 +972,17 @@ static void __init imx6q_clocks_init(struct device_node *ccm_node)
 	pr_info("VPU 352M is enabled!\n");
 #endif
 
+#ifdef CONFIG_ADCS
+	//init_anatop_clocks();
+#endif
 	imx6q_set_lpm(WAIT_CLOCKED);
 
+#ifdef CONFIG_MXC_USE_EPIT
+	np = of_find_node_by_path("/soc/aips-bus@02000000/epit@020d0000");
+ 	base = of_iomap(np, 0);
+ 	WARN_ON(!base);
+ 	irq = irq_of_parse_and_map(np, 0);
+	epit_timer_init(base, irq);
+#endif
 }
 CLK_OF_DECLARE(imx6q, "fsl,imx6q-ccm", imx6q_clocks_init);

@@ -51,6 +51,7 @@
 #include <linux/clockchips.h>
 #include <linux/clk.h>
 #include <linux/err.h>
+#include <linux/sched_clock.h>
 #include <asm/mach/time.h>
 
 #include "common.h"
@@ -83,11 +84,18 @@ static void epit_irq_acknowledge(void)
 {
 	__raw_writel(EPITSR_OCIF, timer_base + EPITSR);
 }
-
+#ifdef CONFIG_MXC_USE_EPIT
+static u64 notrace epit_read_sched_clock(void)
+{
+  return __raw_readl(timer_base + EPITCNR);
+}
+#endif
 static int __init epit_clocksource_init(struct clk *timer_clk)
 {
 	unsigned int c = clk_get_rate(timer_clk);
-
+#ifdef CONFIG_MXC_USE_EPIT	
+	sched_clock_register(epit_read_sched_clock, 32, c);
+#endif
 	return clocksource_mmio_init(timer_base + EPITCNR, "epit", c, 200, 32,
 			clocksource_mmio_readl_down);
 }
@@ -196,8 +204,11 @@ static int __init epit_clockevent_init(struct clk *timer_clk)
 void __init epit_timer_init(void __iomem *base, int irq)
 {
 	struct clk *timer_clk;
-
+#ifdef CONFIG_MXC_USE_EPIT	
+	timer_clk = clk_get_sys("imx-epit.0", "ipg");
+#else
 	timer_clk = clk_get_sys("imx-epit.0", NULL);
+#endif
 	if (IS_ERR(timer_clk)) {
 		pr_err("i.MX epit: unable to get clk\n");
 		return;

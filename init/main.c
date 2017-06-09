@@ -87,7 +87,7 @@
 #include <asm/setup.h>
 #include <asm/sections.h>
 #include <asm/cacheflush.h>
-
+ 
 static int kernel_init(void *);
 
 extern void init_IRQ(void);
@@ -526,7 +526,6 @@ asmlinkage __visible void __init start_kernel(void)
 	setup_nr_cpu_ids();
 	setup_per_cpu_areas();
 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
-
 	build_all_zonelists(NULL, NULL);
 	page_alloc_init();
 
@@ -539,9 +538,7 @@ asmlinkage __visible void __init start_kernel(void)
 	if (!IS_ERR_OR_NULL(after_dashes))
 		parse_args("Setting init args", after_dashes, NULL, 0, -1, -1,
 			   set_init_arg);
-
 	jump_label_init();
-
 	/*
 	 * These use large bootmem allocations and must precede
 	 * kmem_cache_init()
@@ -552,7 +549,6 @@ asmlinkage __visible void __init start_kernel(void)
 	sort_main_extable();
 	trap_init();
 	mm_init();
-
 	/*
 	 * Set up the scheduler prior starting any interrupts (such as the
 	 * timer interrupt). Full topology setup happens at smp_init()
@@ -569,7 +565,6 @@ asmlinkage __visible void __init start_kernel(void)
 		local_irq_disable();
 	idr_init_cache();
 	rcu_init();
-
 	/* trace_printk() and trace points may be used after this */
 	trace_init();
 
@@ -673,7 +668,6 @@ asmlinkage __visible void __init start_kernel(void)
 	}
 
 	ftrace_init();
-
 	/* Do the rest non-__init'ed, we're now alive */
 	rest_init();
 }
@@ -689,7 +683,7 @@ static void __init do_ctors(void)
 #endif
 }
 
-bool initcall_debug;
+bool initcall_debug=1;
 core_param(initcall_debug, initcall_debug, bool, 0644);
 
 #ifdef CONFIG_KALLSYMS
@@ -779,7 +773,7 @@ int __init_or_module do_one_initcall(initcall_t fn)
 	int count = preempt_count();
 	int ret;
 	char msgbuf[64];
-
+//early_print("do_one_initcall(%x)\n",(long)fn);
 	if (initcall_blacklisted(fn))
 		return -EPERM;
 
@@ -849,7 +843,7 @@ static void __init do_initcall_level(int level)
 		   __stop___param - __start___param,
 		   level, level,
 		   &repair_env_string);
-
+//	early_print("do_initcall_level(%d)\n",level);
 	for (fn = initcall_levels[level]; fn < initcall_levels[level+1]; fn++)
 		do_one_initcall(*fn);
 }
@@ -878,7 +872,9 @@ static void __init do_basic_setup(void)
 	init_irq_proc();
 	do_ctors();
 	usermodehelper_enable();
+//	early_print("do_initcalls\n");
 	do_initcalls();
+//	early_print("after do_initcalls\n");
 	random_int_secret_init();
 }
 
@@ -928,7 +924,6 @@ static noinline void __init kernel_init_freeable(void);
 static int __ref kernel_init(void *unused)
 {
 	int ret;
-
 	kernel_init_freeable();
 	/* need to finish all async __init code before freeing the memory */
 	async_synchronize_full();
@@ -998,7 +993,6 @@ static noinline void __init kernel_init_freeable(void)
 
 	smp_init();
 	sched_init_smp();
-
 	do_basic_setup();
 
 	/* Open the /dev/console on the rootfs, this should never fail */

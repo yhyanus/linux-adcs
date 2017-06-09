@@ -41,7 +41,6 @@ int root_mountflags = MS_RDONLY | MS_SILENT;
 static char * __initdata root_device_name;
 static char __initdata saved_root_name[64];
 static int root_wait;
-
 dev_t ROOT_DEV;
 
 static int __init load_ramdisk(char *str)
@@ -544,7 +543,6 @@ void __init mount_root(void)
 void __init prepare_namespace(void)
 {
 	int is_floppy;
-
 	if (root_delay) {
 		printk(KERN_INFO "Waiting %d sec before mounting root device...\n",
 		       root_delay);
@@ -605,7 +603,6 @@ static struct dentry *rootfs_mount(struct file_system_type *fs_type,
 {
 	static unsigned long once;
 	void *fill = ramfs_fill_super;
-
 	if (test_and_set_bit(0, &once))
 		return ERR_PTR(-ENODEV);
 
@@ -624,7 +621,6 @@ static struct file_system_type rootfs_fs_type = {
 int __init init_rootfs(void)
 {
 	int err = register_filesystem(&rootfs_fs_type);
-
 	if (err)
 		return err;
 

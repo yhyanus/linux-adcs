@@ -129,7 +129,8 @@ static int regmap_i2c_write(void *context, const void *data, size_t count)
 	struct device *dev = context;
 	struct i2c_client *i2c = to_i2c_client(dev);
 	int ret;
-
+	u8* by = (u8*) data;
+//dev_err( dev,"regmap_i2c_write %02x %02x \n", by[0],by[1]);
 	ret = i2c_master_send(i2c, data, count);
 	if (ret == count)
 		return 0;

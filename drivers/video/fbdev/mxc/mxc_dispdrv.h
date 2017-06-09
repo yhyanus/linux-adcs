@@ -14,7 +14,7 @@
 #define __MXC_DISPDRV_H__
 #include <linux/fb.h>
 #include "crtc.h"
-
+ 
 struct mxc_dispdrv_handle {
 	struct mxc_dispdrv_driver *drv;
 };

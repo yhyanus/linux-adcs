@@ -26,7 +26,7 @@
 #include <linux/spi/spi.h>
 #include <linux/spi/flash.h>
 #include <linux/mtd/spi-nor.h>
-
+ 
 #define	MAX_CMD_SIZE		6
 struct m25p {
 	struct spi_device	*spi;
@@ -83,7 +83,8 @@ static void m25p80_write(struct spi_nor *nor, loff_t to, size_t len,
 	struct spi_transfer t[2] = {};
 	struct spi_message m;
 	int cmd_sz = m25p_cmdsz(nor);
-
+ 
+dev_dbg(&spi->dev, "sram write to=0x%08x, len= %zd  \n", (u32)to,  len  );
 	spi_message_init(&m);
 
 	if (nor->program_opcode == SPINOR_OP_AAI_WP && nor->sst_write_second)
@@ -100,9 +101,12 @@ static void m25p80_write(struct spi_nor *nor, loff_t to, size_t len,
 	t[1].len = len;
 	spi_message_add_tail(&t[1], &m);
 
+
+
 	spi_sync(spi, &m);
 
 	*retlen += m.actual_length - cmd_sz;
+	dev_dbg(&spi->dev, "sram write to=0x%08, len= %zd, retlen=%x\n",(u32) to, len ,*retlen);
 }
 
 static inline unsigned int m25p80_rx_nbits(struct spi_nor *nor)
@@ -129,7 +133,7 @@ static int m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
 	struct spi_transfer t[2];
 	struct spi_message m;
 	unsigned int dummy = nor->read_dummy;
-
+ 
 	/* convert the dummy cycles to the number of bytes */
 	dummy /= 8;
 
@@ -151,6 +155,8 @@ static int m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
 	spi_sync(spi, &m);
 
 	*retlen = m.actual_length - m25p_cmdsz(nor) - dummy;
+	 
+	dev_dbg(&spi->dev, "sram read from=0x%08x, len=%zd , retlen=%zd \n", (u32)from, len ,*retlen);
 	return 0;
 }
 
@@ -228,7 +234,7 @@ static int m25p_probe(struct spi_device *spi)
 		flash_name = NULL; /* auto-detect */
 	else
 		flash_name = spi->modalias;
-
+dev_dbg(&spi->dev, "m25p_probe(%s)\n" ,flash_name);
 	ret = spi_nor_scan(nor, flash_name, mode);
 	if (ret)
 		return ret;
@@ -268,7 +274,7 @@ static const struct spi_device_id m25p_ids[] = {
 	{"en25f32"},	{"en25p32"},	{"en25q32b"},	{"en25p64"},
 	{"en25q64"},	{"en25qh128"},	{"en25qh256"},
 	{"f25l32pa"},
-	{"mr25h256"},	{"mr25h10"},
+	{"mr25h256"},	{"mr25h10"},{"mr20h40"},
 	{"gd25q32"},	{"gd25q64"},
 	{"160s33b"},	{"320s33b"},	{"640s33b"},
 	{"mx25l2005a"},	{"mx25l4005a"},	{"mx25l8005"},	{"mx25l1606e"},

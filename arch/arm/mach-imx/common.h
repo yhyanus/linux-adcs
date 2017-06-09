@@ -10,7 +10,7 @@
 
 #ifndef __ASM_ARCH_MXC_COMMON_H__
 #define __ASM_ARCH_MXC_COMMON_H__
-
+#define __ENABLE_RESTART__
 #include <linux/reboot.h>
 
 struct irq_data;
@@ -230,5 +230,7 @@ static inline void imx_init_l2cache(void) {}
 
 extern struct smp_operations imx_smp_ops;
 extern struct smp_operations ls1021a_smp_ops;
-
+#ifdef __ENABLE_RESTART__
+extern void imx_src_prepare_restart(void) ;
+#endif
 #endif

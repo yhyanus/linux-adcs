@@ -1257,13 +1257,11 @@ static int mount_ubifs(struct ubifs_info *c)
 		}
 		wake_up_process(c->bgt);
 	}
-
 	err = ubifs_read_master(c);
 	if (err)
 		goto out_master;
 
 	init_constants_master(c);
-
 	if ((c->mst_node->flags & cpu_to_le32(UBIFS_MST_DIRTY)) != 0) {
 		ubifs_msg(c, "recovery needed");
 		c->need_recovery = 1;
@@ -1299,14 +1297,12 @@ static int mount_ubifs(struct ubifs_info *c)
 	err = dbg_check_idx_size(c, c->bi.old_idx_sz);
 	if (err)
 		goto out_lpt;
-
 	err = ubifs_replay_journal(c);
 	if (err)
 		goto out_journal;
 
 	/* Calculate 'min_idx_lebs' after journal replay */
 	c->bi.min_idx_lebs = ubifs_calc_min_idx_lebs(c);
-
 	err = ubifs_mount_orphans(c, c->need_recovery, c->ro_mount);
 	if (err)
 		goto out_orphans;
@@ -1387,7 +1383,6 @@ static int mount_ubifs(struct ubifs_info *c)
 		}
 	} else
 		ubifs_assert(c->lst.taken_empty_lebs > 0);
-
 	err = dbg_check_filesystem(c);
 	if (err)
 		goto out_infos;

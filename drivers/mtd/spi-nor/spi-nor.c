@@ -22,7 +22,7 @@
 #include <linux/of_platform.h>
 #include <linux/spi/flash.h>
 #include <linux/mtd/spi-nor.h>
-
+//#define dev_dbg dev_err
 /* Define max times to check status register before we give up. */
 #define	MAX_READY_WAIT_JIFFIES	(40 * HZ) /* M25P16 specs 40s max chip erase */
 
@@ -561,6 +561,10 @@ static const struct spi_device_id spi_nor_ids[] = {
 	{ "mr25h256", CAT25_INFO( 32 * 1024, 1, 256, 2, SPI_NOR_NO_ERASE | SPI_NOR_NO_FR) },
 	{ "mr25h10",  CAT25_INFO(128 * 1024, 1, 256, 3, SPI_NOR_NO_ERASE | SPI_NOR_NO_FR) },
 	{ "mr20h40",  CAT25_INFO(512 * 1024, 1, 512, 3, SPI_NOR_NO_ERASE | SPI_NOR_NO_FR) },
+
+	{ "hi3210",	  CAT25_INFO( 64 * 1024, 1, 256, 2, SPI_NOR_NO_ERASE | SPI_NOR_NO_FR) },
+	{ "hi3717",	  CAT25_INFO( 1 * 256,	 1, 4,	 1, SPI_NOR_NO_ERASE | SPI_NOR_NO_FR) },
+
 	/* Fujitsu */
 	{ "mb85rs1mt", INFO(0x047f27, 0, 128 * 1024, 1, SPI_NOR_NO_ERASE) },
 

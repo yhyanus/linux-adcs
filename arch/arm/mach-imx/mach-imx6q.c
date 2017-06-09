@@ -40,6 +40,46 @@
 #include "cpuidle.h"
 #include "hardware.h"
 
+static void __init imx6q_sabresd_cko1_setup(void)
+{
+	struct clk *cko1_sel, *pll4, *pll4_post, *cko1;
+	unsigned long rate;
+
+	cko1_sel = clk_get_sys(NULL, "cko1_sel");
+	pll4 = clk_get_sys(NULL, "pll4_audio");
+	pll4_post = clk_get_sys(NULL, "pll4_post_div");
+	cko1 = clk_get_sys(NULL, "cko1");
+	if (IS_ERR(cko1_sel) || IS_ERR(pll4)
+			|| IS_ERR(pll4_post) || IS_ERR(cko1)) {
+		pr_err("cko1 setup failed!\n");
+		goto put_clk;
+	}
+	/*
+	 * Setting pll4 at 768MHz (24MHz * 32)
+ * So its child clock can get 24MHz easily
+	 */
+	clk_set_rate(pll4,  688128000); //768000000);
+
+	clk_set_parent(cko1_sel, pll4_post);
+	rate = clk_round_rate(cko1, 24576000);//24000000);
+	clk_set_rate(cko1, rate);
+put_clk:
+	if (!IS_ERR(cko1_sel))
+		clk_put(cko1_sel);
+	if (!IS_ERR(pll4_post))
+		clk_put(pll4_post);
+	if (!IS_ERR(pll4))
+	clk_put(pll4);
+	if (!IS_ERR(cko1))
+		clk_put(cko1);
+}
+
+static void __init imx6q_sabresd_init(void)
+{
+	imx6q_sabresd_cko1_setup();
+}
+
+
 /* For imx6q sabrelite board: set KSZ9021RN RGMII pad skew */
 static int ksz9021rn_phy_fixup(struct phy_device *phydev)
 {
@@ -476,6 +516,36 @@ static const char * const imx6q_dt_compat[] __initconst = {
 	NULL,
 };
 
+#ifdef __ENABLE_RESTART__
+ 
+void imx6q_restart(char mode, const char *cmd)
+{
+	struct device_node *np;
+	void __iomem *wdog_base;
+
+	np = of_find_compatible_node(NULL, NULL, "fsl,imx6q-wdt");
+	wdog_base = of_iomap(np, 0);
+	WARN_ON(!wdog_base);
+
+	imx_src_prepare_restart();
+
+	/* enable wdog */
+	writew_relaxed(1 << 2, wdog_base);
+	/* write twice to ensure the request will not get ignored */
+	writew_relaxed(1 << 2, wdog_base);
+
+	/* wait for reset to assert ... */
+	mdelay(500);
+
+	pr_err("Watchdog reset failed to assert reset\n");
+
+	/* delay to allow the serial port to show the message */
+	mdelay(50);
+
+	/* we'll take a jump through zero as a poor second */
+	soft_restart(0);
+}
+#endif
 DT_MACHINE_START(IMX6Q, "Freescale i.MX6 Quad/DualLite (Device Tree)")
 	.smp		= smp_ops(imx_smp_ops),
 	.map_io		= imx6q_map_io,
@@ -483,4 +553,7 @@ DT_MACHINE_START(IMX6Q, "Freescale i.MX6 Quad/DualLite (Device Tree)")
 	.init_machine	= imx6q_init_machine,
 	.init_late      = imx6q_init_late,
 	.dt_compat	= imx6q_dt_compat,
+#ifdef __ENABLE_RESTART__
+	.restart	= imx6q_restart,		
+#endif
 MACHINE_END

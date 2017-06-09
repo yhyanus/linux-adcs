@@ -38,7 +38,8 @@
 #include <linux/err.h>
 #include <linux/string.h>
 #include "mxc_dispdrv.h"
-
+#define dev_dbg dev_err
+#define dev_info dev_err
 static LIST_HEAD(dispdrv_list);
 static DEFINE_MUTEX(dispdrv_lock);
 
@@ -91,9 +92,10 @@ struct mxc_dispdrv_handle *mxc_dispdrv_gethandle(char *name,
 {
 	int ret, found = 0;
 	struct mxc_dispdrv_entry *entry;
-
+	dev_dbg(NULL,"mxc_dispdrv_gethandle for %s \n",  name);
 	mutex_lock(&dispdrv_lock);
 	list_for_each_entry(entry, &dispdrv_list, list) {
+		dev_dbg(NULL,"entry : %s \n", entry->drv->name);
 		if (!strcmp(entry->drv->name, name) && (entry->drv->init)) {
 			ret = entry->drv->init((struct mxc_dispdrv_handle *)
 				entry, setting);

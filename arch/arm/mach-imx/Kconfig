@@ -574,6 +574,7 @@ config SOC_IMX6
 	select HAVE_ARM_SCU if SMP
 	select HAVE_ARM_TWD if SMP
 	select PL310_ERRATA_769419 if CACHE_L2X0
+	select HAVE_EPIT
 
 config SOC_IMX6Q
 	bool "i.MX6 Quad/DualLite support"

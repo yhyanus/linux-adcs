@@ -18,24 +18,55 @@
 / {
 	model = "ADCS i.MX6 Quad Board";
 	compatible = "fsl,imx6q-adcs", "fsl,imx6q";
+	
+	
+		vga-encoder {
+		compatible = "adi,adv7125";
+		ddc-i2c-bus = <&i2c2>;
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			 
+			port@0 {
+				reg = <0>;
+				adv7125_out: endpoint {
+					remote-endpoint = <&vga_in>;
+				};
+			};
 		};
+	};
+
+	vga {
+		compatible = "vga-connector";
+
+		port {
+			vga_in: endpoint {
+				remote-endpoint = <&adv7125_out>;
+			};
+		};
+	};
+	
+
+
+};
  
 
-
+ /*
 &ldb {
+	status = "okay";
 	lvds-channel@0 {
-		crtc = "ipu2-di0";
+		crtc = "ipu1-di0";
 	};
 
 	lvds-channel@1 {
-		crtc = "ipu2-di1";
+		crtc = "ipu1-di1";
 		};
-	};
-
+	}; */
 &mxcfb1 {
 	status = "okay";
 };
-
+/*
 &mxcfb2 {
 	status = "okay";
 };
@@ -47,7 +78,10 @@
 &mxcfb4 {
 	status = "okay";
 };
-
+*/
 &sata {
 	status = "okay";
+};
+&ipu2{
+	status = "disabled";
 };

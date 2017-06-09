@@ -26,7 +26,7 @@ vga0: connector@0 {
 	compatible = "vga-connector";
 	label = "vga";
 
-	ddc-i2c-bus = <&i2c3>;
+	ddc-i2c-bus = <&i2c2>;
 
 	port {
 		vga_connector_in: endpoint {

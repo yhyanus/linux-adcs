@@ -199,3 +199,17 @@ void __init imx_src_init(void)
 	writel_relaxed(val, src_base + SRC_SCR);
 	spin_unlock(&src_lock);
 }
+#ifdef __ENABLE_RESTART__
+void imx_src_prepare_restart(void)
+{
+	u32 val;
+
+	/* clear enable bits of secondary cores */
+	val = readl_relaxed(src_base + SRC_SCR);
+	val &= ~(0x7 << BP_SRC_SCR_CORE1_ENABLE);
+	writel_relaxed(val, src_base + SRC_SCR);
+
+	/* clear persistent entry register of primary core */
+	writel_relaxed(0, src_base + SRC_GPR1);
+}
+#endif

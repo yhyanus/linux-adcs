@@ -33,7 +33,7 @@
 #include <linux/of_irq.h>
 
 #include <asm/mach/time.h>
-
+#if 0 
 #include "common.h"
 #include "hardware.h"
 
@@ -350,7 +350,7 @@ void __init mxc_timer_init(void __iomem *base, int irq)
 {
 	struct clk *clk_per = clk_get_sys("imx-gpt.0", "per");
 	struct clk *clk_ipg = clk_get_sys("imx-gpt.0", "ipg");
-
+pr_err("mxc_timer_init timer_base=%08x\n",base);
 	timer_base = base;
 
 	_mxc_timer_init(irq, clk_per, clk_ipg);
@@ -367,7 +367,7 @@ static void __init mxc_timer_init_dt(struct device_node *np)
 	timer_base = of_iomap(np, 0);
 	WARN_ON(!timer_base);
 	irq = irq_of_parse_and_map(np, 0);
-
+pr_err("mxc_timer_init_dt timer_base=%08x\n",timer_base);
 	clk_ipg = of_clk_get_by_name(np, "ipg");
 
 	/* Try osc_per first, and fall back to per otherwise */
@@ -387,3 +387,5 @@ CLOCKSOURCE_OF_DECLARE(mx6sl_timer, "fsl,imx6sl-gpt", mxc_timer_init_dt);
 CLOCKSOURCE_OF_DECLARE(mx6sx_timer, "fsl,imx6sx-gpt", mxc_timer_init_dt);
 CLOCKSOURCE_OF_DECLARE(mx6ul_timer, "fsl,imx6ul-gpt", mxc_timer_init_dt);
 CLOCKSOURCE_OF_DECLARE(mx7d_timer, "fsl,imx7d-gpt", mxc_timer_init_dt);
+
+#endif

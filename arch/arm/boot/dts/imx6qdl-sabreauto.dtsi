@@ -346,7 +346,7 @@
 };
 
 &esai {
-	pinctrl-names = "default";
+	pinctrl-names = "default";	
 	pinctrl-0 = <&pinctrl_esai>;
 	assigned-clocks = <&clks IMX6QDL_CLK_ESAI_SEL>,
 			  <&clks IMX6QDL_CLK_ESAI_EXTAL>;

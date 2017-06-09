@@ -21,7 +21,7 @@
 #include <linux/platform_device.h>
 
 #include "mxc_dispdrv.h"
-
+#define dev_dbg dev_err
 struct mxc_lcd_platform_data {
 	u32 default_ifmt;
 	u32 ipu_id;
@@ -48,6 +48,39 @@ static struct fb_videomode lcdif_modedb[] = {
 	FB_SYNC_CLK_LAT_FALL,
 	FB_VMODE_NONINTERLACED,
 	0,},
+	{	 
+	"XVGA", 60, 1024, 768, 15385, 160, 24, 29, 3, 136, 6,
+	FB_SYNC_CLK_LAT_FALL,
+	FB_VMODE_NONINTERLACED,
+	0,},
+	{	/* 1280x1024 @ 87 Hz interlaced, 51 kHz hsync */
+	"SXGA@87HZ", 87, 1280, 1024, 12500, 56, 16, 128, 1, 216, 12,
+	0, FB_VMODE_INTERLACED
+    },{
+	/* 1280x1024 @ 61 Hz, 64.2 kHz hsync */
+	"SXGA@61HZ", 61, 1280, 1024, 9090, 200, 48, 26, 1, 184, 3,
+	0, FB_VMODE_NONINTERLACED
+    },{
+	/* 1280x1024 @ 70 Hz, 74.59 kHz hsync */
+	"SXGA@70HZ", 70, 1280, 1024, 7905, 224, 32, 28, 8, 160, 8,
+	0, FB_VMODE_NONINTERLACED
+    },{
+	/* 1280x1024 @ 74 Hz, 78.85 kHz hsync */
+	"SXGA@74HZ", 74, 1280, 1024, 7407, 256, 32, 34, 3, 144, 3,
+	0, FB_VMODE_NONINTERLACED
+    },{
+	/* 1280x1024 @ 76 Hz, 81.13 kHz hsync */
+	"SXGA@76HZ", 76, 1280, 1024, 7407, 248, 32, 34, 3, 104, 3,
+	0, FB_VMODE_NONINTERLACED
+    },{
+	/* 1280x1024 @ 85 Hz, 91.15 kHz hsync */
+	"SXGA@85HZ", 85, 1280, 1024, 6349, 224, 64, 44, 1, 160, 3,
+	FB_SYNC_HOR_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLACED
+    },{
+	/* 1280x1024 @ 100 Hz, 107.16 kHz hsync */
+	"SXGA@100HZ", 100, 1280, 1024, 5502, 256, 32, 26, 7, 128, 15,
+	0, FB_VMODE_NONINTERLACED
+    }
 };
 static int lcdif_modedb_sz = ARRAY_SIZE(lcdif_modedb);
 

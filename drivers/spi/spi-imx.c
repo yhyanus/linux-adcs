@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor
  * Boston, MA  02110-1301, USA.
  */
+#define DEBUG 1
+#define _DEBUG 1
 
 #include <linux/clk.h>
 #include <linux/completion.h>
@@ -43,6 +45,9 @@
 #include <linux/platform_data/spi-imx.h>
 
 #define DRIVER_NAME "spi_imx"
+
+#define dev_dbg dev_err
+
 
 #define MXC_CSPIRXDATA		0x00
 #define MXC_CSPITXDATA		0x04
@@ -735,10 +740,11 @@ static void spi_imx_chipselect(struct spi_device *spi, int is_active)
 	int gpio = spi_imx->chipselect[spi->chip_select];
 	int active = is_active != BITBANG_CS_INACTIVE;
 	int dev_is_lowactive = !(spi->mode & SPI_CS_HIGH);
-
+	
 	if (!gpio_is_valid(gpio))
 		return;
 
+//dev_dbg(&spi->dev, "spi_imx_chipselect cs=%d ,dev_is_lowactive=%d, active=%d  \n",spi->chip_select,dev_is_lowactive, active);
 	gpio_set_value(gpio, dev_is_lowactive ^ active);
 }
 
@@ -1072,7 +1078,7 @@ static int spi_imx_pio_transfer(struct spi_device *spi,
 	spi_imx->rx_buf = transfer->rx_buf;
 	spi_imx->count = transfer->len;
 	spi_imx->txfifo = 0;
-
+ 
 	reinit_completion(&spi_imx->xfer_done);
 
 	spi_imx_push(spi_imx);
@@ -1089,7 +1095,7 @@ static int spi_imx_transfer(struct spi_device *spi,
 {
 	int ret;
 	struct spi_imx_data *spi_imx = spi_master_get_devdata(spi->master);
-
+ 
 	if (spi_imx->bitbang.master->can_dma &&
 	    spi_imx_can_dma(spi_imx->bitbang.master, spi, transfer)) {
 		spi_imx->usedma = true;
@@ -1193,6 +1199,7 @@ static int spi_imx_probe(struct platform_device *pdev)
 
 	for (i = 0; i < master->num_chipselect; i++) {
 		int cs_gpio = of_get_named_gpio(np, "cs-gpios", i);
+		//dev_dbg(&pdev->dev,"i=%d , cs_gpio=%x , " ,i,cs_gpio );
 		if (!gpio_is_valid(cs_gpio) && mxc_platform_info)
 			cs_gpio = mxc_platform_info->chipselect[i];
 
